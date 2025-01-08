@@ -1,0 +1,99 @@
+name: Run Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      instance_type:
+        description: 'Instance type to run benchmarks on'
+        required: true
+        type: choice
+        options:
+          - '8cpu-linux-x64'
+          - '16cpu-linux-x64'
+          - '32cpu-linux-x64'
+          - '64cpu-linux-x64'
+      docker_tag:
+        description: 'Benchmark Docker image tag'
+        required: true
+        type: string
+      programs:
+        description: 'Comma-separated list of programs (fibonacci,rsa,ecdsa,json,regex,sha,tendermint,zkquiz,bubble_sort,iseven)'
+        required: true
+        type: string
+      prover:
+        description: 'Prover to use'
+        required: true
+        type: choice
+        options:
+          - 'sp1'
+          - 'risc0'
+      use_cache:
+        description: 'Use GitHub Actions Rust cache'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  run-benchmark:
+    name: Run Benchmarks on runs-on.com
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=${{ inputs.instance_type }}
+      - family=c7i+c7a
+      - spot=true
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust cache
+        if: inputs.use_cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull benchmark image
+        run: |
+          docker pull ghcr.io/prooflabdev/zkrust:${{ inputs.docker_tag }}
+
+      - name: Run benchmarks
+        run: |
+          # Split the comma-separated programs into an array
+          IFS=',' read -ra PROGRAMS <<< "${{ inputs.programs }}"
+          
+          # Create results directory
+          mkdir -p telemetry
+          
+          # Create cargo cache directories if they don't exist
+          mkdir -p ~/.cargo/registry
+          mkdir -p ~/.cargo/git
+          
+          # Run benchmark for each program
+          for program in "${PROGRAMS[@]}"; do
+            docker run \
+              -v $(pwd)/telemetry:/zkrust/telemetry \
+              ${{ inputs.use_cache && '-v ~/.cargo/registry:/root/.cargo/registry -v ~/.cargo/git:/root/.cargo/git' || '' }} \
+              -e ZKRUST_DIR=/root/.zkRust \
+              -e ZKRUST_BIN_DIR=/root/.zkRust/bin \
+              -e RUST_LOG=info \
+              ghcr.io/prooflabdev/zkrust:${{ inputs.docker_tag }} \
+              make benchmark_${{ inputs.prover }}_${program}
+          done
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: telemetry/ 
