@@ -88,6 +88,7 @@ After the workflow completes:
 - Stores results in the telemetry directory
 - Uses compute-optimized instances for better performance
 - Leverages spot instances for cost optimization
+- Uses host networking for optimal network performance
 
 ## Example Usage
 

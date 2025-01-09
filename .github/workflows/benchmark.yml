@@ -113,6 +113,7 @@ jobs:
           # Run benchmark for each program
           for program in "${PROGRAMS[@]}"; do
             docker run \
+              --network host \
               -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu:/zkrust/telemetry" \
               ${{ inputs.use_cache && '-v ~/.cargo/registry:/root/.cargo/registry -v ~/.cargo/git:/root/.cargo/git' || '' }} \
               -e ZKRUST_DIR=/root/.zkRust \
@@ -123,6 +124,13 @@ jobs:
               ghcr.io/prooflabdev/zkrust:${{ inputs.docker_tag }} \
               make benchmark_${{ inputs.prover }}_${program}
           done
+
+      # Fix cache permissions before saving
+      - name: Fix cache permissions
+        if: inputs.use_cache
+        run: |
+          sudo chown -R $(id -u):$(id -g) ~/.cargo/registry
+          sudo chown -R $(id -u):$(id -g) ~/.cargo/git
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
