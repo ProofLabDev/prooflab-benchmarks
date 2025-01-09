@@ -12,14 +12,17 @@ on:
           - '16cpu-linux-x64'
           - '32cpu-linux-x64'
           - '64cpu-linux-x64'
+        default: '64cpu-linux-x64'
       docker_tag:
         description: 'Benchmark Docker image tag'
         required: true
         type: string
+        default: 'main'
       programs:
         description: 'Comma-separated list of programs (fibonacci,rsa,ecdsa,json,regex,sha,tendermint,zkquiz,bubble_sort,iseven)'
         required: true
         type: string
+        default: 'fibonacci'
       prover:
         description: 'Prover to use'
         required: true
