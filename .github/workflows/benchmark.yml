@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
     runs-on:
       - runs-on=${{ github.run_id }}
-      - runner=${{ matrix.cpu }}cpu-linux-x64
+      - cpu=${{ matrix.cpu }}
       - family=${{ matrix.family }}
       - disk=large
       - spot=true
