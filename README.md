@@ -13,17 +13,40 @@ The benchmarks can be run through the GitHub Actions interface:
 
 ### Configuration Options
 
-#### Instance Type
-Choose the computational resources for your benchmark:
-- `8cpu-linux-x64`: 8 CPU cores
-- `16cpu-linux-x64`: 16 CPU cores
-- `32cpu-linux-x64`: 32 CPU cores
-- `64cpu-linux-x64`: 64 CPU cores
+#### Instance Families
+Choose which AWS instance families to benchmark (comma-separated):
+- `c7i`: Latest generation Intel compute optimized
+- `c7a`: Latest generation AMD compute optimized
+- `m7i`: Latest generation Intel general purpose
+- `m7a`: Latest generation AMD general purpose
 
-All instances use compute-optimized AWS instances (c7i/c7a family) via spot pricing for cost efficiency.
+Default: `c7i,c7a`
+
+#### CPU Sizes
+Specify which CPU sizes to benchmark (comma-separated). Available sizes:
+- `8`: 8 CPU cores
+- `16`: 16 CPU cores
+- `32`: 32 CPU cores
+- `64`: 64 CPU cores (default)
+- `96`: 96 CPU cores (where available)
+
+For example:
+- `64` (default): Only run on 64 CPU instances
+- `32,64`: Run on both 32 and 64 CPU instances
+- `8,16,32,64,96`: Run on all available CPU sizes
+
+The workflow will run benchmarks on each CPU size for each selected family. For example, with:
+- Instance Families: `c7i,m7i`
+- CPU Sizes: `32,64`
+
+The workflow will benchmark:
+- c7i: 32 and 64 CPU variants
+- m7i: 32 and 64 CPU variants
+
+All instances use spot pricing for cost efficiency.
 
 #### Docker Tag
-Specify which version of the zkRust image to use (e.g., `latest`, `v1.0.0`). Images are pulled from `ghcr.io/prooflabdev/zkrust`.
+Specify which version of the zkRust image to use (e.g., `latest`, `v1.0.0`). Images are pulled from `ghcr.io/prooflabdev/zkrust`. Defaults to `main`.
 
 #### Programs
 Enter a comma-separated list of programs to benchmark. Available programs:
