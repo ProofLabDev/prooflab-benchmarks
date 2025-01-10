@@ -118,12 +118,7 @@ jobs:
               --network host \
               -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/zkrust/telemetry" \
               ${{ inputs.use_cache && '-v ~/.cargo/registry:/root/.cargo/registry -v ~/.cargo/git:/root/.cargo/git' || '' }} \
-              -e ZKRUST_DIR=/root/.zkRust \
-              -e ZKRUST_BIN_DIR=/root/.zkRust/bin \
               -e RUST_LOG=info \
-              -e INSTANCE_FAMILY=${{ matrix.family }} \
-              -e CPU_COUNT=${{ matrix.cpu }} \
-              -e PROVER=${{ matrix.prover }} \
               ghcr.io/prooflabdev/zkrust:${{ inputs.docker_tag }} \
               make benchmark_${{ matrix.prover }}_${program}
           done
