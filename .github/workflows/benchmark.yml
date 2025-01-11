@@ -111,6 +111,17 @@ jobs:
           # Create cargo cache directories if they don't exist
           mkdir -p ~/.cargo/registry
           mkdir -p ~/.cargo/git
+
+          # Check for AVX support
+          if grep -q avx512 /proc/cpuinfo; then
+            echo "CPU supports AVX512, enabling AVX512 acceleration"
+            echo "RUSTFLAGS=-C target-cpu=native -C target-feature=+avx512f" >> $GITHUB_ENV
+          elif grep -q avx2 /proc/cpuinfo; then
+            echo "CPU supports AVX2, enabling AVX256 acceleration"
+            echo "RUSTFLAGS=-C target-cpu=native" >> $GITHUB_ENV
+          else
+            echo "No AVX support detected"
+          fi
           
           # Run benchmark for each program
           for program in "${PROGRAMS[@]}"; do
