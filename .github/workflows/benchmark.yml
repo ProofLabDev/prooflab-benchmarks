@@ -109,6 +109,7 @@ jobs:
 
       - name: Pull benchmark image
         run: |
+          # TODO: Figure out how to fix this in the GPU AMI
           sudo systemctl restart docker
           # Append -gpu or -cpu suffix to the tag based on GPU toggle
           IMAGE_TAG="${{ inputs.docker_tag }}${{ inputs.enable_gpu && '-gpu' || '-cpu' }}"
