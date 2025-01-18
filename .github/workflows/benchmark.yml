@@ -83,6 +83,7 @@ jobs:
       - family=${{ matrix.family }}
       - disk=large
       - spot=true
+      - image=${{ inputs.enable_gpu && 'prooflab-cuda' || 'ubuntu22-full-x64' }}
     
     steps:
       - name: Checkout repository

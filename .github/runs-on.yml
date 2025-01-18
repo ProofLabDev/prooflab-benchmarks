@@ -1,0 +1,5 @@
+images: 
+  prooflab-cuda:
+    platform: "linux"
+    arch: "x64"
+    ami: "ami-04f407f87b815ef84"
