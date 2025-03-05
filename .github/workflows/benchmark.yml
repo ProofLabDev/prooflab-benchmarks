@@ -7,7 +7,7 @@ on:
         description: 'Instance families to benchmark (comma-separated: c7i,c7a,m7i,m7a)'
         required: true
         type: string
-        default: 'c7i,c7a'
+        default: 'r7i.16xlarge'
       cpu_sizes:
         description: 'CPU sizes to benchmark (comma-separated: 8,16,32,64,96)'
         required: true
@@ -19,10 +19,10 @@ on:
         type: string
         default: 'main'
       programs:
-        description: 'Comma-separated list of programs (fibonacci,rsa,ecdsa,json,regex,sha,tendermint,zkquiz,bubble_sort,iseven)'
+        description: 'Comma-separated list of programs (ed25519_commonware,scep256r1_commonware,helios_light_client,fibonacci,rsa,ecdsa,json,regex,sha,tendermint,bubble_sort,iseven)'
         required: true
         type: string
-        default: 'fibonacci'
+        default: 'ed25519_commonware,scep256r1_commonware,helios_light_client,fibonacci,rsa,ecdsa,json,regex,sha,tendermint,bubble_sort,iseven'
       provers:
         description: 'Comma-separated list of provers (sp1,risc0)'
         required: true
@@ -113,7 +113,7 @@ jobs:
           sudo systemctl restart docker
           # Append -gpu or -cpu suffix to the tag based on GPU toggle
           IMAGE_TAG="${{ inputs.docker_tag }}${{ inputs.enable_gpu && '-gpu' || '-cpu' }}"
-          docker pull ghcr.io/prooflabdev/zkrust:${IMAGE_TAG}
+          docker pull ghcr.io/prooflabdev/prooflab-rs:${IMAGE_TAG}
 
       - name: Run benchmarks
         run: |
@@ -145,13 +145,13 @@ jobs:
           for program in "${PROGRAMS[@]}"; do
             docker run \
               --network host \
-              -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/zkrust/telemetry" \
+              -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/proofab/telemetry" \
               ${{ inputs.use_cache && '-v ~/.cargo/registry:/root/.cargo/registry -v ~/.cargo/git:/root/.cargo/git' || '' }} \
               ${{ inputs.enable_gpu && '-v /var/run/docker.sock:/var/run/docker.sock --gpus all' || '' }} \
-              ${{ inputs.enable_gpu && '-e ZKRUST_GPU=true' || '' }} \
+              ${{ inputs.enable_gpu && '-e PROOFLAB_GPU=true' || '' }} \
               -e RUST_LOG=${{ inputs.debug_mode && 'debug' || 'info' }} \
               -e RUST_BACKTRACE=${{ inputs.debug_mode && 'full' || '1' }} \
-              ghcr.io/prooflabdev/zkrust:${IMAGE_TAG} \
+              ghcr.io/prooflabdev/prooflab-rs:${IMAGE_TAG} \
               make benchmark_${{ matrix.prover }}_${program}
           done
 
