@@ -145,7 +145,7 @@ jobs:
           for program in "${PROGRAMS[@]}"; do
             docker run \
               --network host \
-              -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/proofab/telemetry" \
+              -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/prooflab-rs/telemetry" \
               ${{ inputs.use_cache && '-v ~/.cargo/registry:/root/.cargo/registry -v ~/.cargo/git:/root/.cargo/git' || '' }} \
               ${{ inputs.enable_gpu && '-v /var/run/docker.sock:/var/run/docker.sock --gpus all' || '' }} \
               ${{ inputs.enable_gpu && '-e PROOFLAB_GPU=true' || '' }} \
