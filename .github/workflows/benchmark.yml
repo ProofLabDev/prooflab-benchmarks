@@ -28,6 +28,11 @@ on:
         required: true
         type: string
         default: 'sp1,risc0'
+      benchmark_sizes:
+        description: 'Comma-separated list of benchmark sizes (e.g. 10,50,100,200)'
+        required: false
+        type: string
+        default: ''
       use_cache:
         description: 'Use GitHub Actions Rust cache'
         required: true
@@ -143,6 +148,12 @@ jobs:
           
           # Run benchmark for each program
           for program in "${PROGRAMS[@]}"; do
+            # Determine benchmark sizes command
+            BENCHMARK_SIZES_CMD=""
+            if [ ! -z "${{ inputs.benchmark_sizes }}" ]; then
+              BENCHMARK_SIZES_CMD="--benchmark-sizes ${{ inputs.benchmark_sizes }}"
+            fi
+            
             docker run \
               --network host \
               -v "$(pwd)/telemetry/${{ matrix.family }}_${{ matrix.cpu }}cpu_${{ matrix.prover }}:/prooflab-rs/telemetry" \
@@ -152,7 +163,7 @@ jobs:
               -e RUST_LOG=${{ inputs.debug_mode && 'debug' || 'info' }} \
               -e RUST_BACKTRACE=${{ inputs.debug_mode && 'full' || '1' }} \
               ghcr.io/prooflabdev/prooflab-rs:${IMAGE_TAG} \
-              make benchmark_${{ matrix.prover }}_${program}
+              bash -c "cargo run --release -p prooflab -- prove-${{ matrix.prover }} examples/${program} --enable-telemetry ${BENCHMARK_SIZES_CMD}"
           done
 
       # Fix cache permissions before saving
